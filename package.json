@@ -1,0 +1,20 @@
+{
+  "name": "tu-phat-ma",
+  "version": "1.0.0",
+  "description": "Ha tang rieng phat ma 2FA cho tai khoan BO",
+  "main": "server.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node selftest.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.4.1",
+    "cookie-parser": "^1.4.7",
+    "express": "^5.1.0",
+    "otplib": "^12.0.1",
+    "xlsx": "0.18.5"
+  }
+}

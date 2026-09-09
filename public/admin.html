@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tủ phát mã</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --nen:#eef1f7; --the:#ffffff; --the2:#f7f8fc; --vien:#e6e9f2;
+  --chu:#1b2033; --mo:#6b7391; --nhat:#9aa2bd;
+  --tim:#6c4ee3; --tim-nhat:#efeaff; --lam:#4fa8f5; --lam-nhat:#e8f3fe;
+  --den:#f5a623; --den-nhat:#fff3e0; --do:#ef5b5b; --do-nhat:#feecec;
+  --xanh:#2fba8b; --xanh-nhat:#e6f7f1;
+  --bo:16px; --bo-nho:9px;
+  --do-bong:0 1px 2px rgba(27,32,51,.04), 0 8px 24px rgba(27,32,51,.06);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--nen);color:var(--chu);
+  font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.55;
+  -webkit-font-smoothing:antialiased}
+code,.mono,.acc,.mahien{font-family:'IBM Plex Mono',ui-monospace,monospace}
+button,input,select{font-family:inherit}
+
+/* ---- khung ---- */
+.khung{max-width:1440px;margin:0 auto;padding:22px 24px 60px}
+.thanh-tren{background:var(--the);border-radius:var(--bo);box-shadow:var(--do-bong);
+  padding:10px 14px;display:flex;align-items:center;gap:8px;margin-bottom:22px;
+  position:sticky;top:14px;z-index:5}
+.hieu{display:flex;align-items:center;gap:9px;padding:0 12px 0 6px;margin-right:6px}
+.hieu i{width:30px;height:30px;border-radius:9px;background:var(--tim);display:grid;place-items:center;
+  color:#fff;font-style:normal;font-weight:700;font-size:14px}
+.hieu b{font-size:14.5px;font-weight:700;letter-spacing:-.01em}
+nav{display:flex;gap:3px;flex:1}
+nav button{border:0;background:none;color:var(--mo);padding:8px 14px;border-radius:var(--bo-nho);
+  cursor:pointer;font-size:13.5px;font-weight:500;position:relative}
+nav button:hover{background:var(--the2);color:var(--chu)}
+nav button.on{background:var(--tim);color:#fff}
+.dot{display:inline-grid;place-items:center;min-width:17px;height:17px;padding:0 5px;margin-left:6px;
+  border-radius:9px;background:var(--do);color:#fff;font-size:10.5px;font-weight:700;vertical-align:1px}
+nav button.on .dot{background:rgba(255,255,255,.28)}
+.trang-thai{display:flex;align-items:center;gap:7px;color:var(--mo);font-size:12px;padding-right:6px}
+.den{width:7px;height:7px;border-radius:50%;background:var(--xanh)}
+.den.tat{background:var(--nhat)}
+.den.canh{background:var(--den)}
+
+/* ---- lưới trang ---- */
+.cot2{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;align-items:start}
+@media(max-width:1120px){.cot2{grid-template-columns:1fr}}
+
+/* ---- thẻ ---- */
+.hop{background:var(--the);border-radius:var(--bo);box-shadow:var(--do-bong);padding:20px 22px;margin-bottom:20px}
+.hop>h3{margin:0 0 16px;font-size:14.5px;font-weight:700;letter-spacing:-.01em}
+.hop.mong{padding:16px 18px}
+h2{font-size:21px;font-weight:700;margin:0 0 4px;letter-spacing:-.02em}
+.phu{color:var(--mo);font-size:13px;margin:0 0 20px;max-width:74ch}
+.muc{font-size:11px;font-weight:700;letter-spacing:.07em;color:var(--nhat);margin:26px 0 12px}
+
+/* ---- thẻ số ---- */
+.so-luoi{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px}
+.so{background:var(--the);border-radius:var(--bo);box-shadow:var(--do-bong);padding:17px 18px}
+.so .nhan{color:var(--mo);font-size:12px;font-weight:500;display:flex;align-items:center;gap:7px}
+.so .nhan i{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;font-style:normal;font-size:12px}
+.so .gt{font-size:27px;font-weight:700;letter-spacing:-.03em;margin-top:9px;line-height:1}
+.so .gt small{font-size:14px;font-weight:600;color:var(--nhat);letter-spacing:0}
+.so .ghi{color:var(--nhat);font-size:11.5px;margin-top:5px}
+.i-tim{background:var(--tim-nhat);color:var(--tim)}
+.i-lam{background:var(--lam-nhat);color:var(--lam)}
+.i-den{background:var(--den-nhat);color:#c47f10}
+.i-do{background:var(--do-nhat);color:var(--do)}
+.i-xanh{background:var(--xanh-nhat);color:var(--xanh)}
+
+/* ---- bảng ---- */
+.cuon{overflow-x:auto;margin:0 -22px;padding:0 22px}
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--nhat);font-size:11px;letter-spacing:.05em;
+  text-transform:uppercase;padding:0 12px 10px;white-space:nowrap}
+td{padding:12px;border-top:1px solid var(--vien);vertical-align:middle}
+tbody tr:hover td{background:var(--the2)}
+.acc{font-size:12.5px;color:var(--mo)}
+
+/* ---- chip ---- */
+.chip{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.c-ok{background:var(--xanh-nhat);color:#1e8c66}
+.c-mo{background:var(--the2);color:var(--mo)}
+.c-den{background:var(--den-nhat);color:#b3740c}
+.c-do{background:var(--do-nhat);color:#c93b3b}
+
+/* ---- nút ---- */
+button.b{background:var(--the);border:1px solid var(--vien);color:var(--chu);
+  padding:6px 13px;border-radius:var(--bo-nho);cursor:pointer;font-size:12.5px;font-weight:600;
+  transition:.12s}
+button.b:hover{border-color:var(--nhat);background:var(--the2)}
+button.b.chinh{background:var(--tim);border-color:var(--tim);color:#fff}
+button.b.chinh:hover{background:#5b3fd0;border-color:#5b3fd0}
+button.b.nguy{color:var(--do);border-color:#f6d5d5}
+button.b.nguy:hover{background:var(--do-nhat)}
+button.b:disabled{opacity:.45;cursor:not-allowed}
+.hang{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+
+/* ---- form ---- */
+label{display:block;font-size:11.5px;font-weight:600;color:var(--mo);margin:0 0 5px}
+input,select,textarea{width:100%;background:var(--the);border:1px solid var(--vien);
+  color:var(--chu);padding:8px 11px;border-radius:var(--bo-nho);font-size:13px}
+input:focus,select:focus{outline:none;border-color:var(--tim);box-shadow:0 0 0 3px var(--tim-nhat)}
+input[type=checkbox]{width:auto;accent-color:var(--tim)}
+.luoi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:13px}
+
+/* ---- màn mã ---- */
+.mahien{font-size:42px;font-weight:700;letter-spacing:.14em;color:var(--tim);margin:8px 0;text-align:center}
+.thanh{height:5px;background:var(--vien);border-radius:3px;overflow:hidden;margin:10px 0 5px}
+.thanh i{display:block;height:100%;background:var(--tim);transition:width 1s linear}
+.che{filter:blur(11px);user-select:none}
+.ghi{background:var(--the2);border:1px solid var(--vien);border-radius:var(--bo-nho);
+  padding:14px 16px;font-size:13px;margin-top:12px;white-space:pre-wrap;word-break:break-word}
+
+/* ---- biểu đồ ---- */
+.bd{width:100%;height:150px;display:block}
+.bd-nhan{display:flex;justify-content:space-between;color:var(--nhat);font-size:10.5px;margin-top:6px}
+
+/* ---- dòng hoạt động ---- */
+.dong{display:flex;gap:11px;padding:11px 0;border-top:1px solid var(--vien);align-items:flex-start}
+.dong:first-child{border-top:0;padding-top:0}
+.dong .ava{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;
+  font-size:12px;font-weight:700;flex:none}
+.dong .th{flex:1;min-width:0}
+.dong .th b{font-size:13px;font-weight:600}
+.dong .th div{color:var(--mo);font-size:11.5px;margin-top:1px;overflow:hidden;text-overflow:ellipsis}
+.dong .gio{color:var(--nhat);font-size:11px;white-space:nowrap;flex:none}
+
+/* ---- lớp phủ ---- */
+.phu-lop{position:fixed;inset:0;background:rgba(24,28,44,.5);backdrop-filter:blur(3px);
+  display:grid;place-items:center;z-index:20;padding:20px}
+.the{background:var(--the);border-radius:var(--bo);padding:30px;width:100%;max-width:410px;
+  box-shadow:0 20px 60px rgba(20,24,40,.28)}
+.the h3{margin:0 0 6px;font-size:18px;font-weight:700;letter-spacing:-.02em}
+.the p{color:var(--mo);font-size:13px;margin:0 0 18px}
+.loi{color:var(--do);font-size:12.5px;margin-top:9px;min-height:18px}
+.an{display:none}
+.trong{color:var(--nhat);padding:30px 0;font-size:13px;text-align:center}
+.info-strip{display:flex;gap:10px;align-items:flex-start;background:var(--tim-nhat);border:1px solid #ded6ff;
+  border-radius:var(--bo-nho);padding:12px 14px;color:var(--mo);font-size:12.5px;line-height:1.65}
+.info-icon{width:22px;height:22px;border-radius:7px;background:var(--tim);color:#fff;display:grid;place-items:center;
+  flex:none;font-weight:700;font-size:12px}
+
+/* ---- dải cảnh báo gian lận ---- */
+.bao-do{background:linear-gradient(135deg,#e8493f,#c9302c);color:#fff;border-radius:var(--bo);
+  padding:18px 22px;margin-bottom:20px;box-shadow:0 6px 24px rgba(201,48,44,.28);
+  animation:nhay 1.4s ease-in-out infinite}
+@keyframes nhay{0%,100%{box-shadow:0 6px 24px rgba(201,48,44,.28)}50%{box-shadow:0 6px 34px rgba(201,48,44,.55)}}
+.bao-do h4{margin:0 0 4px;font-size:15px;font-weight:800;letter-spacing:.02em}
+.bao-do .ct{font-size:12.5px;opacity:.95;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace;
+  background:rgba(0,0,0,.16);border-radius:9px;padding:10px 12px;margin-top:10px}
+.bao-do button{background:#fff;color:#c9302c;border:0;padding:6px 14px;border-radius:var(--bo-nho);
+  font-weight:700;font-size:12.5px;cursor:pointer;margin-top:12px}
+
+/* ===== Gộp Nhân sự + Lịch làm việc ===== */
+.work-hub{padding:0;overflow:hidden}
+.work-hub-head{padding:18px 20px 14px;border-bottom:1px solid var(--vien);display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap}
+.work-hub-title{flex:1;min-width:260px}
+.work-hub-title h3{margin:0 0 4px;font-size:15px}
+.work-hub-title p{margin:0;color:var(--mo);font-size:12.5px}
+.work-hub-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.seg{display:inline-flex;background:var(--the2);border:1px solid var(--vien);padding:3px;border-radius:11px;gap:2px}
+.seg button{border:0;background:transparent;color:var(--mo);padding:7px 12px;border-radius:8px;cursor:pointer;font-weight:600;font-size:12.5px}
+.seg button.on{background:var(--the);color:var(--tim);box-shadow:0 1px 4px rgba(27,32,51,.08)}
+.work-pane{padding:16px 20px 20px}
+.work-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 14px}
+.work-subpanel{border:1px solid var(--vien);background:var(--the2);border-radius:13px;padding:15px;margin:12px 0 16px}
+.work-subpanel[hidden]{display:none!important}
+.work-subpanel h4{font-size:13px;margin:0 0 12px}
+.shift-main{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.shift-time{font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:600;color:var(--chu)}
+.shift-off{font-weight:700;color:var(--do)}
+.shift-sub{font-size:10.8px;color:var(--nhat);margin-top:4px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.link-mini{border:0;background:none;padding:0;color:var(--tim);cursor:pointer;font-size:10.8px;text-decoration:underline;text-underline-offset:2px}
+.row-menu{position:relative}
+.row-menu>summary{list-style:none;cursor:pointer;border:1px solid var(--vien);background:var(--the);padding:7px 10px;border-radius:9px;font-weight:700;color:var(--mo);user-select:none}
+.row-menu>summary::-webkit-details-marker{display:none}
+.row-menu[open]>summary{color:var(--tim);border-color:#cfc5ff;background:var(--tim-nhat)}
+.row-menu-box{position:absolute;right:0;top:calc(100% + 6px);z-index:20;width:190px;background:var(--the);border:1px solid var(--vien);border-radius:12px;box-shadow:0 12px 32px rgba(27,32,51,.14);padding:7px;display:grid;gap:5px}
+.row-menu-box button{width:100%;text-align:left}
+.month-toolbar{display:flex;align-items:end;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.month-toolbar .f{min-width:170px}
+.month-summary{border:1px solid #d9d1ff;background:#f6f3ff;border-radius:12px;padding:11px 13px;margin:0 0 12px;font-size:12.5px;color:var(--mo)}
+.month-list{display:grid;gap:10px}
+.emp-month{border:1px solid var(--vien);border-radius:13px;background:var(--the);overflow:hidden}
+.emp-month summary{list-style:none;cursor:pointer;padding:12px 14px;display:grid;grid-template-columns:minmax(170px,1.3fr) minmax(130px,.9fr) 110px 130px 30px;gap:12px;align-items:center}
+.emp-month summary::-webkit-details-marker{display:none}
+.emp-month[open] summary{background:var(--the2);border-bottom:1px solid var(--vien)}
+.emp-month-name b{display:block;font-size:13px}.emp-month-name span,.emp-month small{color:var(--nhat);font-size:11px}
+.emp-month-today{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px}
+.emp-month-arrow{font-size:18px;color:var(--nhat);transition:.15s}
+.emp-month[open] .emp-month-arrow{transform:rotate(90deg)}
+.month-grid-wrap{padding:12px 14px 14px}
+.month-grid{display:grid;grid-template-columns:repeat(7,minmax(86px,1fr));gap:6px}
+.daycell{border:1px solid var(--vien);background:var(--the);border-radius:9px;min-height:54px;padding:6px 7px;cursor:pointer;text-align:left;transition:.12s;position:relative}
+.daycell:hover{border-color:#cfc5ff;box-shadow:0 2px 8px rgba(108,78,227,.08)}
+.daycell.work{background:#f7f5ff;border-color:#ddd6ff}
+.daycell.today{box-shadow:inset 0 0 0 1.5px var(--tim)}
+.daycell.off{background:#fafbfc;color:var(--nhat)}
+.daynum{font-size:10px;color:var(--nhat);font-weight:700}
+.daytime{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10.5px;color:var(--tim);margin-top:5px;white-space:nowrap}
+.dayoff{font-size:10.5px;color:var(--nhat);margin-top:5px}
+.month-empty{padding:28px;text-align:center;color:var(--nhat)}
+#lichEditPanel{scroll-margin-top:95px}
+.lich-edit-head{display:flex;align-items:center;gap:8px;justify-content:space-between;margin-bottom:12px}
+.lich-edit-title{font-weight:700}
+@media(max-width:1050px){
+  .emp-month summary{grid-template-columns:1fr 1fr 90px 28px}
+  .emp-month-today{display:none}
+  .month-grid{grid-template-columns:repeat(5,minmax(78px,1fr))}
+}
+@media(max-width:720px){
+  .month-grid{grid-template-columns:repeat(3,minmax(76px,1fr))}
+  .emp-month summary{grid-template-columns:1fr 90px 28px}
+  .emp-month summary>:nth-child(2){display:none}
+}
+
+
+.bulk-quick{display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:10px 12px;margin:-2px 0 14px;border:1px solid #d9d1ff;
+  background:#f7f5ff;border-radius:12px}
+.bulk-quick[hidden]{display:none!important}
+.bulk-quick strong{color:var(--tim);font-size:12.5px}
+.bulk-quick .spacer{flex:1}
+.bulk-quick select{width:auto;min-width:105px}
+
+</style>
+</head>
+<body>
+
+<div id="cong" class="phu-lop">
+  <div class="the">
+    <h3>Tủ phát mã</h3>
+    <p>Hạ tầng riêng phát mã 2FA cho tài khoản BO.</p>
+    <label for="mk">Mật khẩu quản trị</label>
+    <input id="mk" type="password" autocomplete="current-password">
+    <div class="loi" id="congloi"></div>
+    <div style="margin-top:14px"><button class="b chinh" onclick="dangNhap()">Vào tủ</button></div>
+  </div>
+</div>
+
+<div id="mokhoa" class="phu-lop an">
+  <div class="the">
+    <h3>Mở khoá tủ</h3>
+    <p>Khoá chủ chỉ nằm trong bộ nhớ, không ghi xuống đĩa. Mỗi lần server khởi động lại phải nhập lại.</p>
+    <label for="kc">Khoá chủ — tối thiểu 32 ký tự</label>
+    <input id="kc" type="password" minlength="32">
+    <div class="loi" id="mkloi"></div>
+    <div style="margin-top:14px"><button class="b chinh" onclick="moKhoa()">Mở khoá</button></div>
+  </div>
+</div>
+
+<div class="khung an" id="app">
+  <div class="thanh-tren">
+    <div class="hieu"><i>T</i><b>Tủ phát mã</b></div>
+    <nav>
+      <button data-tab="tq" class="on">Tổng quan</button>
+      <button data-tab="tu">Nhân sự</button>
+      <button onclick="moTab('tu'); workView('month')" title="Nhập và xem lịch ca theo tháng">Lịch ca</button>
+      <button data-tab="may">Máy trạm <span id="soMay"></span></button>
+      <button data-tab="duyet">Chờ duyệt <span id="soDuyet"></span></button>
+      <button data-tab="canhbao">Dấu hiệu lạ <span id="soCanhBao"></span></button>
+      <button data-tab="nhatky">Nhật ký</button>
+      <button data-tab="kiemthu">Kiểm thử</button>
+      <button data-tab="caidat">Cài đặt</button>
+    </nav>
+    <div class="trang-thai"><span class="den" id="denBot"></span><span id="tinhTrang"></span></div>
+    <button class="b" onclick="dangXuat()">Thoát</button>
+  </div>
+
+  <main>
+    <section id="tab-tq">
+      <div id="tqGianLan"></div>
+      <div id="tqSo" class="so-luoi"></div>
+      <div class="cot2">
+        <div>
+          <div class="hop">
+            <h3>Mã phát ra trong 24 giờ qua
+              <span id="tqTong" style="float:right;font-weight:600;color:var(--mo);font-size:12.5px"></span></h3>
+            <div id="tqBieuDo"></div>
+          </div>
+          <div class="hop">
+            <h3>Lần phát mã gần nhất</h3>
+            <div id="tqHoatDong"></div>
+          </div>
+        </div>
+        <div>
+          <div class="hop mong">
+            <h3>Cần m xử lý</h3>
+            <div id="tqViec"></div>
+          </div>
+          <div class="hop mong">
+            <h3>Dấu hiệu lạ gần đây</h3>
+            <div id="tqCanhBao"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-tu" class="an">
+      <h2>Nhân sự</h2>
+      <p class="phu">Gắn máy được từ 7 phút trước giờ vào ca cho tới hết ca. Mỗi ca chỉ một máy — đổi máy giữa ca là báo gian lận. Ca sửa trực tiếp trong bảng, hoặc đổi hàng loạt ở dưới khi xếp lại ca đầu tháng.</p>
+
+      <div class="hop">
+        <h3>Thêm một người thủ công <span style="float:right;font-weight:400;color:var(--nhat);font-size:11.5px">tách biệt với việc nhập lịch bằng file ở trên</span></h3>
+        <div class="luoi">
+          <div><label>Tên nhân viên</label><input id="f_ten" placeholder="Nguyễn Thu Hà"></div>
+          <div><label>Tài khoản BO</label><input id="f_acc" placeholder="ST666-524"></div>
+          <div><label>Bộ phận</label><select id="f_role"><option>CS</option><option>CS ONL</option><option>VIP</option><option>RISK</option><option>RISK_ONLINE</option></select></div>
+          <div><label>Khu vực</label><select id="f_tz"><option value="420">VN · Asia/Ho_Chi_Minh</option><option value="240">ARM · Asia/Yerevan</option></select></div>
+          <div><label>Ca bắt đầu</label><input id="f_bd" value="09:00"></div>
+          <div><label>Ca kết thúc</label><input id="f_kt" value="21:00"></div>
+          <div><label>Độ dài ca</label><select id="f_dodai">
+            <option value="">— dùng giờ kết thúc ở trên —</option>
+            <option value="360">6 tiếng</option><option value="420">7 tiếng</option>
+            <option value="450">7.5 tiếng</option><option value="480">8 tiếng</option>
+            <option value="540">9 tiếng</option><option value="600">10 tiếng</option>
+            <option value="660">11 tiếng</option><option value="720">12 tiếng</option>
+          </select></div>
+          <div><label>Mức</label><select id="f_muc"><option value="thuong">Thường</option><option value="cao">Quyền cao</option></select></div>
+          <div><label>Hạn mức mã / ca</label><input id="f_han" type="number" value="2"></div>
+          <div style="align-self:end"><button class="b chinh" onclick="themNV()">Thêm</button></div>
+        </div>
+        <div class="loi" id="themLoi"></div>
+      </div>
+
+      <div class="hop work-hub" style="margin-top:24px">
+        <div class="work-hub-head">
+          <div class="work-hub-title">
+            <h3>Quản lý nhân sự & lịch làm việc <span id="demNV" style="font-weight:500;color:var(--nhat);font-size:11.5px;margin-left:8px"></span></h3>
+            <p>Nhập nhân sự, quản lý ca và lịch tháng trong cùng một khu vực. Ca hôm nay lấy trực tiếp từ lịch tháng; nếu ô lịch chỉ ghi giờ vào thì giờ ra tự tính theo độ dài ca của từng người.</p>
+          </div>
+          <div class="work-hub-tools">
+            <div class="seg">
+              <button id="workTabStaff" class="on" onclick="workView('staff')">Nhân sự</button>
+              <button id="workTabMonth" onclick="workView('month')">Lịch tháng</button>
+            </div>
+            <button class="b" onclick="toggleWorkPanel('staffimport')">＋ Nhập nhân sự</button>
+            <button class="b" onclick="toggleWorkPanel('import')">＋ Nhập lịch</button>
+            <button class="b" onclick="toggleWorkPanel('bulk')">Đổi ca mặc định</button>
+          </div>
+        </div>
+
+        <div class="work-pane">
+
+          <div id="workStaffImportPanel" class="work-subpanel" hidden>
+            <h4>Nhập danh sách nhân sự từ file <span style="float:right;font-weight:400;color:var(--nhat);font-size:11.5px">.xlsx / .xls / .csv</span></h4>
+            <p style="color:var(--mo);font-size:12.5px;margin:-4px 0 14px">
+              Cột nhận được: <code>Ten</code> · <code>TaiKhoanBO</code> · <code>KhuVuc</code> · <code>BoPhan</code> · <code>Ca</code>.
+              Hai cột đầu bắt buộc, còn lại thiếu thì lấy giá trị chung ở dưới.
+              Tiêu đề nằm ở dòng nào cũng được, hệ thống tự tìm.<br>
+              <b>Cột <code>Ca</code> ghi giờ vào ca kiểu Việt Nam <code>HH:MM</code></b> — <code>09:00</code>, <code>14:30</code>,
+              <code>22:00</code>. Nhận cả <code>9h</code>, <code>9h30</code> và ô Excel định dạng Time.
+              File chỉ cần một mốc giờ; giờ kết thúc tính từ độ dài ca chọn ở dưới, sửa lại được trong bảng.
+            </p>
+            <div class="luoi">
+              <div style="grid-column:span 2"><label>Chọn file</label><input id="ns_file" type="file" accept=".xlsx,.xls,.csv"></div>
+              <div style="align-self:end"><div class="hang">
+                <button class="b" onclick="nhapNhanSu(true)">Kiểm tra trước</button>
+                <button class="b chinh" onclick="nhapNhanSu(false)">Nhập tất cả</button>
+              </div></div>
+            </div>
+
+            <div class="muc" style="margin:18px 0 10px">ÁP CHO DÒNG THIẾU CỘT</div>
+            <div class="luoi">
+              <div><label>Bộ phận</label><select id="ns_role"><option>CS</option><option>CS ONL</option><option>VIP</option><option>RISK</option><option>RISK_ONLINE</option></select></div>
+              <div><label>Khu vực</label><select id="ns_tz"><option value="420">VN</option><option value="240">ARM</option></select></div>
+              <div><label>Ca bắt đầu</label><input id="ns_bd" value="09:00"></div>
+              <div><label>Độ dài ca</label><select id="ns_dodai">
+                <option value="360">6 tiếng</option><option value="420">7 tiếng</option>
+                <option value="450">7.5 tiếng</option><option value="480" selected>8 tiếng</option>
+                <option value="540">9 tiếng</option><option value="600">10 tiếng</option>
+                <option value="660">11 tiếng</option><option value="720">12 tiếng</option>
+              </select></div>
+              <div><label>Hạn mức mã / ca</label><input id="ns_han" type="number" value="2"></div>
+            </div>
+            <div class="loi" id="nsLoi"></div>
+            <div id="nsKq" style="margin-top:14px"></div>
+            <p style="color:var(--nhat);font-size:11.5px;margin:14px 0 0">
+              Nhập xong mỗi người vẫn cần nạp hạt giống và cấp mã CCB — hai thứ đó cố ý không nhận từ file, vì gom giá trị bí mật vào một file là tự phá lớp bảo vệ.
+            </p>
+          </div>
+
+          <div id="workImportPanel" class="work-subpanel" hidden>
+            <h4>Nhập lịch ca theo tháng</h4>
+            <div class="info-strip">
+              <div class="info-icon">i</div>
+              <div>Sau khi lịch tháng được áp cho nhân viên, ngày có ca sẽ mở BO theo đúng ca đó; ngày trống / DO / AL / OFF là ngày nghỉ và không mở BO.</div>
+            </div>
+            <div class="luoi" style="margin-top:14px">
+              <div><label>Tháng áp dụng</label><input id="lich_thang_nhap" type="month"></div>
+              <div style="grid-column:span 2"><label>File lịch</label><input id="lich_file" type="file" accept=".xlsx,.xls,.csv"></div>
+              <div style="align-self:end"><div class="hang">
+                <button class="b" onclick="nhapLichThang('preview')">Xem trước</button>
+                <button class="b chinh" onclick="nhapLichThang('merge')">Merge</button>
+                <button class="b nguy" onclick="nhapLichThang('replace')">Ghi đè tháng</button>
+              </div></div>
+            </div>
+            <div class="loi" id="lichLoi"></div>
+            <div id="lichKq" style="margin-top:12px"></div>
+            <p style="color:var(--nhat);font-size:11.5px;margin:10px 0 0;line-height:1.6">
+              Format giống Điểm danh: 1 dòng/người, mỗi ngày trong tháng là 1 cột. Ô ngày chỉ cần ghi <b>giờ vào</b> như <code>09:00</code>, <code>14:00</code>, <code>22:00</code>; giờ ra luôn tự tính theo <b>Độ dài ca</b> của từng nhân viên. Nếu file có dạng <code>09:00-17:00</code>, hệ thống chỉ lấy <code>09:00</code>. <code>DO</code> / <code>AL</code> / <code>OFF</code> / ô trống = nghỉ.
+            </p>
+          </div>
+
+          <div id="workBulkPanel" class="work-subpanel" hidden>
+            <h4>Áp dụng hàng loạt cho người đã chọn</h4>
+            <p style="color:var(--mo);font-size:12px;margin:-4px 0 12px">
+              Tích tùy ý nhiều nhân viên trong danh sách. Có thể chỉ đổi <b>độ dài ca</b> mà vẫn giữ nguyên giờ vào riêng của từng người,
+              hoặc áp cùng một ca mặc định / khu vực cho toàn bộ người đã chọn. Lịch tháng đã nhập không bị ghi đè.
+            </p>
+
+            <div class="muc" style="margin:10px 0 8px">CHỈ ĐỔI ĐỘ DÀI CA</div>
+            <div class="hang" style="align-items:end;gap:10px;flex-wrap:wrap">
+              <div><label>Độ dài ca</label>
+                <select id="dc_dodai">
+                  <option value="360">6 tiếng</option><option value="420">7 tiếng</option>
+                  <option value="450">7.5 tiếng</option><option value="480" selected>8 tiếng</option>
+                  <option value="540">9 tiếng</option><option value="600">10 tiếng</option>
+                  <option value="660">11 tiếng</option><option value="720">12 tiếng</option>
+                </select>
+              </div>
+              <button class="b chinh" onclick="apDoDaiDaChon()">Áp độ dài cho người đã chọn</button>
+            </div>
+
+            <div class="muc" style="margin:18px 0 8px">ĐỔI CÙNG CA MẶC ĐỊNH</div>
+            <div class="luoi">
+              <div><label>Ca bắt đầu</label><input id="dc_bd" value="09:00"></div>
+              <div><label>Ca kết thúc</label><input id="dc_kt" value="21:00"></div>
+              <div><label>Khu vực</label><select id="dc_tz"><option value="420">VN · Asia/Ho_Chi_Minh</option><option value="240">ARM · Asia/Yerevan</option></select></div>
+            </div>
+            <div class="loi" id="dcLoi"></div>
+            <div class="hang" style="margin-top:12px">
+              <button class="b chinh" onclick="doiCa()">Áp ca mặc định cho người đã chọn</button>
+              <button class="b" onclick="chonTatCa()">Chọn tất cả đang hiển thị</button>
+              <button class="b" onclick="boChon()">Bỏ chọn</button>
+              <span id="dcDem" style="color:var(--nhat);font-size:12px"></span>
+            </div>
+          </div>
+
+          <div id="workStaffView">
+            <div class="luoi" style="gap:10px;margin-bottom:14px">
+              <div><label>Tìm tên / tài khoản BO</label><input id="l_tim" placeholder="gõ để lọc..." oninput="veBangNV()"></div>
+              <div><label>Bộ phận</label><select id="l_role" onchange="veBangNV()"><option value="">Tất cả</option></select></div>
+              <div><label>Khu vực</label><select id="l_tz" onchange="veBangNV()"><option value="">Tất cả</option><option value="420">VN</option><option value="240">ARM</option></select></div>
+              <div style="align-self:end"><button class="b" onclick="xoaLoc()">Xóa lọc</button></div>
+            </div>
+
+            <div id="bulkQuick" class="bulk-quick" hidden>
+              <strong id="bulkQuickCount">Đã chọn 0 người</strong>
+              <span style="color:var(--mo);font-size:12px">Áp độ dài ca:</span>
+              <select id="bulkQuickDuration">
+                <option value="360">6 tiếng</option><option value="420">7 tiếng</option>
+                <option value="450">7.5 tiếng</option><option value="480" selected>8 tiếng</option>
+                <option value="540">9 tiếng</option><option value="600">10 tiếng</option>
+                <option value="660">11 tiếng</option><option value="720">12 tiếng</option>
+              </select>
+              <button class="b chinh" onclick="apDoDaiDaChon('bulkQuickDuration')">Áp dụng</button>
+              <button class="b" onclick="toggleWorkPanel('bulk')">Tùy chọn khác</button>
+              <span class="spacer"></span>
+              <button class="b" onclick="boChon()">Bỏ chọn</button>
+            </div>
+
+            <div id="bangNV"></div>
+          </div>
+
+          <div id="workMonthView" hidden>
+            <div class="month-toolbar">
+              <div class="f"><label>Tháng</label><input id="lich_thang" type="month" onchange="taiLichNgay()"></div>
+              <div class="f" style="min-width:260px;flex:1"><label>Tìm nhân viên / tài khoản BO</label><input id="lich_tim" placeholder="Tìm..." oninput="taiLichNgay()"></div>
+              <button class="b" onclick="taiLichNgay()">Tải lại</button>
+              <button class="b chinh" onclick="toggleWorkPanel('import')">Nhập / cập nhật lịch</button>
+            </div>
+            <div id="lichBang"><div class="trong">Chưa tải lịch tháng.</div></div>
+
+            <div id="lichEditPanel" class="work-subpanel" hidden>
+              <div class="lich-edit-head">
+                <div>
+                  <div class="lich-edit-title">Điều chỉnh một ngày</div>
+                  <div id="lichEditHint" style="color:var(--nhat);font-size:11px;margin-top:2px"></div>
+                </div>
+                <button class="b" onclick="dongSuaLichNgay()">Đóng</button>
+              </div>
+              <div class="luoi">
+                <div><label>Tài khoản BO</label><input id="lich_acc" placeholder="ST666-524" onchange="capNhatGioRaTuTinh()"></div>
+                <div><label>Ngày</label><input id="lich_ngay" type="date"></div>
+                <div><label>Giờ vào ca</label><input id="lich_vao" type="time" onchange="capNhatGioRaTuTinh()"></div>
+                <div><label>Giờ ra ca <span style="font-weight:400;color:var(--nhat)">(tự tính theo Độ dài ca)</span></label><input id="lich_ra" type="time" readonly></div>
+                <div><label>Trạng thái</label><select id="lich_trangthai" onchange="doiTrangThaiLichEdit()"><option value="WORK">Đi làm</option><option value="OFF">OFF</option></select></div>
+                <div style="align-self:end"><div class="hang">
+                  <button class="b chinh" onclick="luuLichNgayThuCong()">Lưu</button>
+                  <button id="lichDeleteBtn" class="b nguy" onclick="xoaLichDangSua()" hidden>Xóa ca</button>
+                </div></div>
+              </div>
+              <div class="loi" id="lichThuCongLoi"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-may" class="an">
+      <h2>Máy trạm</h2>
+      <p class="phu">Máy chạy script PowerShell để lấy mã. Mỗi máy đăng ký một lần, duyệt xong dùng vĩnh viễn. Ai ngồi máy nào cũng dùng được — máy là cái ghế, không thuộc về ai. Mỗi thời điểm một máy chỉ phục vụ một tài khoản BO: người sau gắn vào thì tài khoản người trước bị gỡ khỏi máy đó. Dấu vân máy tính từ tên máy, MachineGuid và serial ổ C, nên chép tệp device.json sang máy khác là bị chặn.</p>
+      <div id="bangMay"></div>
+    </section>
+
+    <section id="tab-duyet" class="an">
+      <h2>Chờ duyệt</h2>
+      <p class="phu">Yêu cầu ngoài giờ ca do máy trạm gửi lên. Hết hạn sau 2 phút. Bấm nút trong Telegram cũng được.</p>
+      <div id="bangDuyet"></div>
+    </section>
+
+    <section id="tab-canhbao" class="an">
+      <h2>Dấu hiệu lạ</h2>
+      <p class="phu">Sai mã CCB liên tiếp, lấy dồn dập, lấy ngoài ca, vượt hạn mức, gắn máy mới, dùng mã phá kính.</p>
+      <div class="hang" style="margin-bottom:14px"><button class="b" onclick="xoaCanhBao()">Đánh dấu đã xem</button></div>
+      <div id="bangCanhBao"></div>
+    </section>
+
+    <section id="tab-nhatky" class="an">
+      <h2>Nhật ký</h2>
+      <p class="phu">Mọi lần xin mã, phát mã, duyệt, nạp hạt giống. Đây là thứ ghép với log BO theo mốc thời gian để ra người.</p>
+      <div class="hang" style="margin-bottom:14px">
+        <select id="locHD" style="width:auto" onchange="taiNhatKy()">
+          <option value="">Tất cả hành động</option>
+          <option value="PHAT_MA">Phát mã</option>
+          <option value="XIN_MA">Xin mã bị chặn</option>
+          <option value="DUYET">Duyệt</option>
+          <option value="PHA_KINH">Phá kính</option>
+          <option value="GAN_TELEGRAM">Gắn máy</option>
+        <option value="XIN_MA_MAY_LA">Xin mã từ máy chưa gắn</option>
+        <option value="GIAN_LAN">Gian lận</option>
+        <option value="NHUONG_MAY">Nhường máy</option>
+        <option value="DA_PHIEN_BO">Đá phiên BO</option>
+        <option value="DANG_KY_MAY">Đăng ký máy</option>
+        <option value="DOI_CA">Đổi ca</option>
+        <option value="LICH_THANG">Lịch tháng</option>
+        <option value="LICH_NGAY">Lịch ngày</option>
+        <option value="DANG_NHAP_BO">Đăng nhập BO</option>
+          <option value="NAP_HAT_GIONG">Nạp hạt giống</option>
+        </select>
+        <button class="b" onclick="taiNhatKy()">Tải lại</button>
+      </div>
+      <div id="bangNhatKy"></div>
+    </section>
+
+    <section id="tab-kiemthu" class="an">
+      <h2>Kiểm thử</h2>
+      <p class="phu">Chạy đúng luồng nghiệp vụ mà không cần máy trạm. Mọi lần thử đều vào nhật ký như thật.</p>
+      <div class="hop">
+        <h3>Đóng vai nhân viên xin mã</h3>
+        <div class="luoi">
+          <div><label>Tài khoản BO</label><input id="kt_acc"></div>
+          <div><label>Mã CCB</label><input id="kt_ccb" type="password"></div>
+        </div>
+        <div class="hang" style="margin-top:14px">
+          <button class="b chinh" onclick="ktXinMa()">Xin mã</button>
+          <button class="b" onclick="ktPhaKinh()">Dùng mã phá kính</button>
+        </div>
+        <div id="ktKetQua"></div>
+      </div>
+    </section>
+
+    <section id="tab-caidat" class="an">
+      <h2>Cài đặt</h2>
+      <p class="phu">Điều chỉnh mức ồn của thông báo Telegram.</p>
+      <div class="hop">
+        <h3>Báo về Telegram</h3>
+        <div class="hang" style="align-items:flex-start">
+          <input type="checkbox" id="cd_bao" style="width:auto;margin-top:3px" onchange="luuCaiDat()">
+          <label for="cd_bao" style="font-size:13.5px;color:var(--chu);cursor:pointer;margin:0">
+            Báo cho Quản lý mỗi lần có người lấy mã
+            <div style="color:var(--mo);font-size:12.5px;margin-top:3px;max-width:60ch">Bật thì mỗi lần bất kỳ ai lấy mã, kể cả bình thường trong ca, Quản lý nhận một tin: ai, tài khoản BO nào, lúc mấy giờ, lần thứ mấy trong ca. Tắt thì chỉ còn báo khi có dấu hiệu lạ.</div>
+          </label>
+        </div>
+      </div>
+
+      <div class="hop">
+        <h3>Cửa sổ gắn máy</h3>
+        <p style="color:var(--mo);font-size:12.5px;margin:-8px 0 14px">
+          Gắn máy được từ <b>7 phút trước giờ vào ca</b> cho tới hết ca — vào ca muộn vẫn làm việc được,
+          không bị khoá ngoài BO. Nhưng <b>đã gắn rồi mà đổi sang máy khác</b> trong cùng ca thì bị chặn
+          và báo gian lận. Ai cần đổi máy thật (máy hỏng) thì Quản lý bấm <b>Mở khoá gắn</b> ở dòng người đó
+          trong tab Nhân sự.
+        </p>
+        <div class="luoi">
+          <div><label>Nới thêm sau giờ vào ca (phút)</label><input id="cd_hanchot" type="number" min="0" onchange="luuCaiDat()"></div>
+          <div style="align-self:end"><span style="color:var(--nhat);font-size:11.5px">Để 0 là đóng đúng giờ vào ca</span></div>
+        </div>
+      </div>
+
+      <div class="hop">
+        <h3>Đá phiên BO khi hết ca</h3>
+        <p style="color:var(--mo);font-size:12.5px;margin:-8px 0 14px">
+          Tủ không tự chạQuản lý vào BO — nó không giữ phiên của nhân viên và cũng không nên giữ.
+          Tới giờ, tủ gọi địa chỉ dưới đây, phía Quản lý nhận rồi tự đá phiên (Playwright đăng nhập
+          tài khoản quản trị, hoặc endpoint quản trị của BO). Mỗi ca chỉ bắn một lần.
+        </p>
+        <div class="hang" style="align-items:flex-start;margin-bottom:14px">
+          <input type="checkbox" id="wh_bat" style="width:auto;margin-top:3px" onchange="luuCaiDat()">
+          <label for="wh_bat" style="font-size:13.5px;color:var(--chu);cursor:pointer;margin:0">Bật đá phiên tự động khi hết ca</label>
+        </div>
+        <div class="luoi">
+          <div style="grid-column:span 2"><label>Địa chỉ</label><input id="wh_url" placeholder="https://boapi.../users/{bo_account}/kick" onchange="luuCaiDat()"></div>
+          <div><label>Phương thức</label><select id="wh_method" onchange="luuCaiDat()"><option>PUT</option><option>POST</option><option>GET</option><option>DELETE</option></select></div>
+          <div><label>Đá sau khi hết ca (phút)</label><input id="wh_tre" type="number" min="0" onchange="luuCaiDat()"></div>
+        </div>
+        <div class="luoi" style="margin-top:13px">
+          <div style="grid-column:span 3"><label>Token BO — dán chuỗi <code>Authorization</code> lấy từ DevTools</label>
+            <input id="wh_token" type="password" placeholder="eyJhbGciOiJIUzI1NiJ9..." onchange="luuCaiDat()"></div>
+          <div style="align-self:end"><span id="wh_tokenLuc" style="color:var(--nhat);font-size:11.5px"></span></div>
+        </div>
+        <div class="luoi" style="margin-top:13px">
+          <div><label>Header (JSON)</label><textarea id="wh_headers" rows="3" style="font-family:'IBM Plex Mono',monospace;font-size:12px" onchange="luuCaiDat()"></textarea></div>
+          <div><label>Nội dung gửi đi</label><textarea id="wh_body" rows="3" style="font-family:'IBM Plex Mono',monospace;font-size:12px" onchange="luuCaiDat()"></textarea></div>
+        </div>
+        <p style="color:var(--nhat);font-size:11.5px;margin:12px 0 0">
+          Thay được trong địa chỉ, header và nội dung: <code>{token}</code> <code>{bo_account}</code>
+          <code>{bo_user_id}</code> <code>{ho_ten}</code> <code>{nhan_vien_id}</code>
+          <code>{ca_bat_dau}</code> <code>{ca_ket_thuc}</code>.
+          Nội dung để trống thì không gửi body — đúng cho lệnh <code>PUT .../kick</code>.<br>
+          Nếu API trả header <code>X-token-renew</code> thì tủ tự lưu token mới, không phải dán lại tay.
+          Gặp HTTP 401/403 thì tủ báo <code>TOKEN_BO_HET_HAN</code> — lúc đó phải dán token mới.
+          Thử bằng nút <b>Đá phiên</b> ở dòng người đó trong tab Nhân sự.
+        </p>
+      </div>
+
+      <div class="hop">
+        <h3>Lấy token BO — thủ công và tự động</h3>
+        <p style="color:var(--mo);font-size:12.5px;margin:-8px 0 14px">
+          Token dán tay chết sau vài tiếng. Bật cái này thì gặp HTTP 401 tủ tự đăng nhập lấy token mới rồi thử lại.
+          <b>Mật khẩu điền vào đây là chuỗi hash SHA1</b> lấy từ DevTools (trường <code>password</code> trong request login),
+          không phải mật khẩu thật — tủ không bao giờ biết mật khẩu gốc. Chuỗi đó lưu mã hoá bằng khoá chủ.
+        </p>
+        <div class="hang" style="align-items:flex-start;margin-bottom:14px">
+          <input type="checkbox" id="bo_tudn" style="width:auto;margin-top:3px" onchange="luuCaiDat()">
+          <label for="bo_tudn" style="font-size:13.5px;color:var(--chu);cursor:pointer;margin:0">Bật tự đăng nhập khi token hết hạn</label>
+        </div>
+        <div class="luoi">
+          <div style="grid-column:span 2"><label>Địa chỉ đăng nhập</label><input id="bo_url" onchange="luuCaiDat()"></div>
+          <div><label>Tài khoản BO quản trị</label><input id="bo_uid" placeholder="soso1688" onchange="luuCaiDat()"></div>
+          <div><label>Chuỗi hash mật khẩu</label><input id="bo_mk" type="password" placeholder="52fd842eea22..." onchange="luuCaiDat()"></div>
+          <div style="align-self:end"><div class="hang">
+            <button class="b chinh" onclick="thuDangNhapBo()">Lấy token BO ngay</button>
+            <span id="bo_dnKq" style="font-size:12px"></span>
+          </div></div>
+        </div>
+        <p style="color:var(--nhat);font-size:11.5px;margin:12px 0 0">
+          Dùng tài khoản riêng cho hệ thống, đừng dùng tài khoản cá nhân của Quản lý — và nếu BO cấp được
+          tài khoản chỉ có quyền quản lý phiên thì dùng cái đó. Tài khoản này phải TẮT xác thực hai lớp.
+        </p>
+      </div>
+
+      
+      <div class="hop">
+        <h3>Bộ hẹn giờ đang thấy gì <button class="b" style="float:right" onclick="taiHenGio()">Tải lại</button></h3>
+        <div id="hgTrangThai"></div>
+        <div id="hgBang" style="margin-top:12px"></div>
+        <div class="hang" style="margin-top:14px">
+          <button class="b" onclick="daNgay()">Đá ngay mọi người đã hết ca</button>
+        </div>
+      </div>
+
+      <div class="hop">
+        <h3>Kiểm tra đường Telegram</h3>
+        <p style="color:var(--mo);font-size:12.5px;margin:-8px 0 14px">Bắn một tin thử về Telegram của Quản lý. Không nhận được tin nghĩa là mọi cảnh báo từ trước tới giờ cũng rơi vào hư không.</p>
+        <div class="hang"><button class="b" onclick="thuTelegram()">Gửi tin thử</button><span id="ttKq" style="font-size:12.5px"></span></div>
+      </div>
+
+    </section>
+
+  </main>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>
