@@ -920,6 +920,25 @@ async function luuCaiDat() {
   await api('/api/cai-dat', { method: 'POST', body });
 }
 
+async function xemIpMayChu() {
+  const o = $('#bo_dnKq');
+  o.textContent = 'đang hỏi…'; o.style.color = 'var(--mo)';
+  try {
+    const d = await api('/api/bo/ip-may-chu');
+    if (d.ok) {
+      o.textContent = 'IP máy chủ: ' + d.ip;
+      o.style.color = 'var(--chu)';
+      prompt('IP mà BO và Cloudflare nhìn thấy khi tủ gọi sang.\n\n' +
+        'Gửi IP này cho IT để mở ngoại lệ trên Cloudflare.\n' +
+        'Render có thể xoay vòng vài IP — bấm lại vài lần để lấy đủ bộ.\n\n' +
+        'Nguồn: ' + d.nguon, d.ip);
+    } else {
+      o.textContent = 'không hỏi được: ' + d.chi_tiet;
+      o.style.color = 'var(--do)';
+    }
+  } catch (e) { o.textContent = e.message; o.style.color = 'var(--do)'; }
+}
+
 async function thuDangNhapBo() {
   const o = $('#bo_dnKq');
   o.textContent = 'đang thử…'; o.style.color = 'var(--mo)';

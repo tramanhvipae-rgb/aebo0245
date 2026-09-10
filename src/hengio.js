@@ -4,6 +4,14 @@ const { seal, unseal } = require('./crypto');
 const svc = require('./service');
 const { moc_ca, gioDiaPhuong, gioNgayDiaPhuong } = require('./policy');
 
+/**
+ * Hết ca thì gọi một webhook do Jason cấu hình, để hệ thống bên ngoài đá phiên BO.
+ *
+ * Tủ cố ý KHÔNG tự gọi thẳng BO: nó không giữ phiên của nhân viên, và không nên giữ.
+ * Việc chạm vào BO nằm ở phía Jason — có thể là Playwright đăng nhập tài khoản quản trị,
+ * hoặc một endpoint quản trị của BO. Tủ chỉ chịu trách nhiệm bắn đúng người, đúng lúc,
+ * đúng một lần cho mỗi ca, và ghi lại kết quả.
+ */
 
 const MAC_DINH = {
   webhook_bat: '0',
@@ -100,56 +108,20 @@ async function dang_nhap_bo() {
   try { matKhau = unseal(c.bo_mat_khau_enc); }
   catch (e) { return { ok: false, chi_tiet: 'không giải mã được mật khẩu đã lưu' }; }
 
-  // Dùng lại đúng bộ header đã cấu hình cho lệnh kick (bỏ Authorization vì lúc này
-  // chưa có token). Ghim cứng Origin/Referer của một brand thì brand khác bị tường lửa
-  // BO chặn thẳng — mỗi brand một tên miền riêng.
-  // Tường lửa của BO thường chặn thẳng những request không giống trình duyệt.
-  // Node gửi User-Agent mặc định là 'undici' — đủ để bị chặn ở nhiều nơi.
-  let headers = {
-    'Content-Type': 'application/json;charset=UTF-8',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
-      + '(KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
-    Accept: '*/*',
-    'Accept-Language': 'en-US,en;q=0.9,vi;q=0.8',
-  };
-  try {
-    const cauHinh = JSON.parse(c.webhook_headers || '{}');
-    for (const [k, v] of Object.entries(cauHinh)) {
-      if (k.toLowerCase() === 'authorization') continue;
-      if (typeof v === 'string' && v.includes('{token}')) continue;
-      headers[k] = v;
-    }
-  } catch (e) { /* header cấu hình hỏng thì cứ gửi bộ tối thiểu */ }
-
-  // Thiếu Origin/Referer thì suy ra từ chính địa chỉ đăng nhập: boapi.x.com -> bo.x.com
-  try {
-    const u = new URL(c.bo_login_url);
-    const goc = 'https://' + u.hostname.replace(/^boapi\./, 'bo.');
-    if (!Object.keys(headers).some((k) => k.toLowerCase() === 'origin')) headers.Origin = goc;
-    if (!Object.keys(headers).some((k) => k.toLowerCase() === 'referer')) headers.Referer = goc + '/';
-  } catch (e) { /* địa chỉ hỏng thì để fetch báo lỗi */ }
-
   try {
     const r = await fetch(c.bo_login_url, {
       method: 'POST',
-      headers,
+      headers: {
+        'Content-Type': 'application/json;charset=UTF-8',
+        Origin: 'https://bo.bo666st.com',
+        Referer: 'https://bo.bo666st.com/',
+        'X-Currency': 'VND2',
+      },
       body: JSON.stringify({ userid: c.bo_userid, password: matKhau }),
       signal: AbortSignal.timeout(20000),
     });
     const than = await r.text().catch(() => '');
-    if (!r.ok) {
-      // Nói rõ ai từ chối: tường lửa trước cổng hay chính BO. Hai cái sửa khác nhau.
-      const ai = [...new Set([r.headers.get('server'),
-        r.headers.get('cf-ray') ? 'cloudflare' : null].filter(Boolean))].join(' · ');
-      const chan_tuong_lua = /cloudflare|access denied|forbidden/i.test(
-        (ai || '') + ' ' + than) && r.status >= 400;
-      return { ok: false,
-        chi_tiet: `đăng nhập BO trả HTTP ${r.status}${ai ? ' [' + ai + ']' : ''} · ${than.slice(0, 200)}`
-          + (chan_tuong_lua
-            ? ' — trông như bị chặn ở tường lửa/IP, không phải sai mật khẩu.'
-              + ' BO có thể chỉ cho phép IP trong nước.'
-            : '') };
-    }
+    if (!r.ok) return { ok: false, chi_tiet: `đăng nhập BO trả HTTP ${r.status} · ${than.slice(0, 200)}` };
 
     const token = moiToken(r.headers, than);
     if (!token) return { ok: false, chi_tiet: 'đăng nhập được nhưng không tìm thấy token trong phản hồi' };
@@ -162,6 +134,37 @@ async function dang_nhap_bo() {
   } catch (e) {
     return { ok: false, chi_tiet: e.name === 'TimeoutError' ? 'quá 20 giây không phản hồi' : e.message };
   }
+}
+
+// Vài nguồn để hỏi IP outbound của máy chủ — dò lần lượt, cái nào sống thì dùng.
+// Có vài cái vì Render/nhà cung cấp có thể chặn hoặc đổi một nguồn bất kỳ lúc nào.
+const NGUON_IP = [
+  { url: 'https://api.ipify.org?format=json', doc: (j) => j.ip },
+  { url: 'https://ifconfig.me/ip', doc: (t) => t.trim() },
+  { url: 'https://icanhazip.com', doc: (t) => t.trim() },
+];
+
+/**
+ * Hỏi vài dịch vụ bên ngoài xem máy chủ đang gọi đi bằng IP nào.
+ * Dùng để gửi cho IT mở ngoại lệ trên Cloudflare/BO — vì BO và Cloudflare thấy
+ * đúng cái IP mà máy chủ gọi ra, chứ không phải IP máy của admin đang ngồi xem.
+ */
+async function lay_ip_may_chu() {
+  const loi = [];
+  for (const nguon of NGUON_IP) {
+    try {
+      const r = await fetch(nguon.url, { signal: AbortSignal.timeout(8000) });
+      if (!r.ok) { loi.push(`${nguon.url} · HTTP ${r.status}`); continue; }
+      const than = await r.text();
+      let gt;
+      try { gt = nguon.doc(JSON.parse(than)); } catch (e) { gt = nguon.doc(than); }
+      if (gt && /^[0-9a-fA-F.:]+$/.test(gt)) return { ok: true, ip: gt, nguon: nguon.url };
+      loi.push(`${nguon.url} · phản hồi lạ: ${than.slice(0, 100)}`);
+    } catch (e) {
+      loi.push(`${nguon.url} · ${e.name === 'TimeoutError' ? 'quá 8 giây' : e.message}`);
+    }
+  }
+  return { ok: false, chi_tiet: 'không hỏi được nguồn nào: ' + loi.join(' | ') };
 }
 
 /** Bắn webhook cho một người. Trả về {ok, chi_tiet}. */
@@ -203,23 +206,16 @@ async function ban(nv, cauHinh, daThuLai = false) {
 
     const doc = (await r.text().catch(() => '')).slice(0, 300);
 
-    // 401 và 403 là hai chuyện khác nhau, gộp lại thì chỉ dẫn sai đường:
-    //   401 = token hết hạn      -> đăng nhập lại là xong
-    //   403 = tài khoản thiếu quyền -> đăng nhập lại bao nhiêu lần cũng vẫn 403
-    if (r.status === 401) {
+    if (r.status === 401 || r.status === 403) {
+      // Token chết thì tự đăng nhập lấy token mới rồi thử lại đúng một lần.
       if (!daThuLai && c.bo_tu_dang_nhap === '1') {
         const dn = await dang_nhap_bo();
         if (dn.ok) return ban(nv, cau_hinh(), true);
         return { ok: false, het_han: true,
-          chi_tiet: `HTTP 401 và tự đăng nhập lại cũng hỏng: ${dn.chi_tiet}` };
+          chi_tiet: `HTTP ${r.status} và tự đăng nhập lại cũng hỏng: ${dn.chi_tiet}` };
       }
       return { ok: false, het_han: true,
-        chi_tiet: 'HTTP 401 — token BO đã hết hạn' };
-    }
-
-    if (r.status === 403) {
-      return { ok: false, thieu_quyen: true,
-        chi_tiet: `HTTP 403 — tài khoản "${c.bo_userid || 'chưa đặt'}" không có quyền đá phiên` };
+        chi_tiet: `HTTP ${r.status} — token BO đã hết hạn hoặc không đủ quyền` };
     }
 
     // BO trả "user not online" khi không có phiên nào để đá. Đây không phải lỗi —
@@ -245,15 +241,11 @@ async function da_mot_nguoi(nv, cauHinh, nguon = 'hen-gio') {
     ket_qua: kq.khong_online ? 'khong_online' : kq.ok ? 'ok' : 'hong',
     chi_tiet: kq.chi_tiet, nguon });
   if (!kq.ok) {
-    svc.canhBao(nv,
-      kq.thieu_quyen ? 'BO_THIEU_QUYEN' : kq.het_han ? 'TOKEN_BO_HET_HAN' : 'DA_PHIEN_HONG',
+    svc.canhBao(nv, kq.het_han ? 'TOKEN_BO_HET_HAN' : 'DA_PHIEN_HONG',
       `Không đá được phiên BO của ${nv.ho_ten} (${nv.bo_account}) sau khi hết ca.\n` +
       `Lý do: ${kq.chi_tiet}\n` +
-      (kq.thieu_quyen
-        ? 'Đăng nhập lại KHÔNG chữa được lỗi này. Tài khoản BO đang dùng thiếu quyền đá phiên —\n' +
-          'đổi sang tài khoản có quyền, hoặc nhờ IT cấp quyền cho tài khoản này.'
-        : kq.het_han
-        ? 'Vào tủ, tab Cài đặt, bấm "Lấy token BO ngay". Mọi lệnh đá phiên đang hỏng cho tới lúc đó.'
+      (kq.het_han
+        ? 'Vào tủ, tab Cài đặt, dán token BO mới. Mọi lệnh đá phiên đang hỏng cho tới lúc đó.'
         : 'Phiên BO của người này có thể vẫn đang mở.'));
   }
   return kq;
@@ -376,4 +368,4 @@ function khoi_dong() {
 }
 
 module.exports = { khoi_dong, quet, ban, da_mot_nguoi, cau_hinh, chan_doan, da_nhung_nguoi_het_ca,
-  dang_nhap_bo, gan_kenh_bao, MAC_DINH };
+  dang_nhap_bo, lay_ip_may_chu, gan_kenh_bao, MAC_DINH };

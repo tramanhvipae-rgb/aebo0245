@@ -655,6 +655,10 @@ app.post('/api/hen-gio/da-ngay', chanAdmin, async (req, res) =>
 app.post('/api/bo/dang-nhap', chanAdmin, chanKhoa, async (req, res) =>
   res.json(await hengio.dang_nhap_bo()));
 
+/** IP outbound mà máy chủ đang dùng để gọi ra ngoài — gửi cho IT mở ngoại lệ Cloudflare/BO. */
+app.get('/api/bo/ip-may-chu', chanAdmin, async (req, res) =>
+  res.json(await hengio.lay_ip_may_chu()));
+
 /** Đá phiên BO của một người ngay bây giờ — dùng để thử webhook. */
 app.post('/api/nhan-vien/:id/da-phien', chanAdmin, async (req, res) => {
   const nv = db.getNhanVienFull(req.params.id);
