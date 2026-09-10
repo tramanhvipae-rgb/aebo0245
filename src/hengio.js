@@ -4,14 +4,6 @@ const { seal, unseal } = require('./crypto');
 const svc = require('./service');
 const { moc_ca, gioDiaPhuong, gioNgayDiaPhuong } = require('./policy');
 
-/**
- * Hết ca thì gọi một webhook do Jason cấu hình, để hệ thống bên ngoài đá phiên BO.
- *
- * Tủ cố ý KHÔNG tự gọi thẳng BO: nó không giữ phiên của nhân viên, và không nên giữ.
- * Việc chạm vào BO nằm ở phía Jason — có thể là Playwright đăng nhập tài khoản quản trị,
- * hoặc một endpoint quản trị của BO. Tủ chỉ chịu trách nhiệm bắn đúng người, đúng lúc,
- * đúng một lần cho mỗi ca, và ghi lại kết quả.
- */
 
 const MAC_DINH = {
   webhook_bat: '0',
