@@ -23,7 +23,7 @@ const MAC_DINH = {
   bo_token: '',
   bo_token_luc: '',
   bo_tu_dang_nhap: '0',
-  bo_login_url: 'https://boapi.bo666st.com/vh7prod-ims/api/v1/login',
+  bo_login_url: 'https://boapi.da77ae888.com/ae888-ims/api/v1/login',
   bo_userid: '',
   bo_mat_khau_enc: '',       // hash SHA1 lấy từ DevTools, mã hoá bằng khoá chủ
   bo_dang_nhap_luc: '',
@@ -113,8 +113,8 @@ async function dang_nhap_bo() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json;charset=UTF-8',
-        Origin: 'https://bo.bo666st.com',
-        Referer: 'https://bo.bo666st.com/',
+        Origin: 'https://bo.da77ae888.com',
+        Referer: 'https://bo.da77ae888.com/',
         'X-Currency': 'VND2',
       },
       body: JSON.stringify({ userid: c.bo_userid, password: matKhau }),
