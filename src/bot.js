@@ -5,7 +5,21 @@ const svc = require('./service');
 const { LUAT } = require('./policy');
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
-const ADMIN_ID = String(process.env.ADMIN_TELEGRAM_ID || '');
+// Nhận nhiều người quản trị: ngăn cách bằng dấu phẩy, khoảng trắng hoặc xuống dòng.
+// Cảnh báo bắn cho tất cả; ai cũng bấm được nút duyệt.
+const ADMIN_IDS = String(process.env.ADMIN_TELEGRAM_ID || '')
+  .split(/[\s,;]+/).map((x) => x.trim()).filter(Boolean);
+const laAdmin = (tid) => ADMIN_IDS.includes(String(tid));
+
+/** Bắn một tin cho mọi quản trị. Trả về kết quả của người đầu tiên. */
+async function guiMoiAdmin(noiDung, phim) {
+  let dau = null;
+  for (const id of ADMIN_IDS) {
+    const r = await guiTin(id, noiDung, phim);
+    if (dau === null) dau = r;
+  }
+  return dau;
+}
 const API = (m) => `https://api.telegram.org/bot${TOKEN}/${m}`;
 
 let offset = 0;
@@ -35,27 +49,27 @@ async function guiMaRoiXoa(chatId, nv, ma, conLai) {
 }
 
 async function baoDongChoJason(loai, noiDung) {
-  if (!TOKEN || !ADMIN_ID) return;
+  if (!TOKEN || !ADMIN_IDS.length) return;
   const nang = loai === 'GIAN_LAN';
-  await guiTin(ADMIN_ID,
+  await guiMoiAdmin(
     nang ? `🚨🚨 <b>CẢNH BÁO GIAN LẬN</b> 🚨🚨\n<pre>${noiDung}</pre>`
          : `⚠️ <b>${loai}</b>\n${noiDung}`);
 }
 
 /** Báo hoạt động bình thường (mỗi lần phát mã). Không có biểu tượng cảnh báo. */
 async function tinChoJason(noiDung) {
-  if (!TOKEN || !ADMIN_ID) return;
-  await guiTin(ADMIN_ID, noiDung);
+  if (!TOKEN || !ADMIN_IDS.length) return;
+  await guiMoiAdmin( noiDung);
 }
 
 /** Hỏi duyệt đăng ký máy mới, kèm nút bấm ngay trong Telegram. */
 async function hoiDuyetMay(mayId) {
-  if (!TOKEN || !ADMIN_ID) return;
+  if (!TOKEN || !ADMIN_IDS.length) return;
   const tb = db.getThietBi(mayId);
   if (!tb) return;
   const nv = tb.nhan_vien_id ? db.getNhanVienFull(tb.nhan_vien_id) : null;
   const dangCo = nv ? db.dsMayCua(nv.id).map((m) => m.nhan_dang || m.telegram_id) : [];
-  await guiTin(ADMIN_ID,
+  await guiMoiAdmin(
     `🖥 <b>ĐĂNG KÝ MÁY MỚI</b>\n` +
     `Máy: <b>${tb.ten_may || 'không rõ tên'}</b>\n` +
     (nv ? `Người xin: ${nv.ho_ten} · <code>${nv.bo_account}</code>\n` : '') +
@@ -68,10 +82,10 @@ async function hoiDuyetMay(mayId) {
 }
 
 async function hoiDuyet(yeuCauId) {
-  if (!TOKEN || !ADMIN_ID) return;
+  if (!TOKEN || !ADMIN_IDS.length) return;
   const yc = db.getYeuCau(yeuCauId);
   if (!yc) return;
-  await guiTin(ADMIN_ID,
+  await guiMoiAdmin(
     `🔔 <b>${yc.ho_ten}</b> xin mã ngoài ca\nTài khoản BO: <code>${yc.bo_account}</code>\nLý do: ${yc.ly_do}\nHết hạn sau 2 phút.`,
     { reply_markup: { inline_keyboard: [[
       { text: '✅ Duyệt', callback_data: `ok:${yeuCauId}` },
@@ -111,7 +125,7 @@ async function xuLyTinNhan(msg) {
   if (db.dangBiChan(tid)) return;
 
   // Jason: đây là kênh của m.
-  if (tid === ADMIN_ID) {
+  if (laAdmin(tid)) {
     return guiTin(chatId,
       'Kênh này chỉ để nhận cảnh báo và bấm nút duyệt.\n' +
       'Quản trị tủ trên trang web.');
@@ -142,7 +156,7 @@ async function xuLyTinNhan(msg) {
 
 async function xuLyNutBam(cq) {
   const tid = String(cq.from.id);
-  if (tid !== ADMIN_ID) {
+  if (!laAdmin(tid)) {
     return goi('answerCallbackQuery', { callback_query_id: cq.id, text: 'Không có quyền duyệt.' });
   }
   const [act, idStr] = String(cq.data || '').split(':');
@@ -206,8 +220,8 @@ function khoiDong() {
 /** Bắn một tin thử về Telegram của Jason, trả về lỗi thật nếu hỏng. */
 async function guiTinThu() {
   if (!TOKEN) return { ok: false, loi: 'Chưa đặt TELEGRAM_BOT_TOKEN.' };
-  if (!ADMIN_ID) return { ok: false, loi: 'Chưa đặt ADMIN_TELEGRAM_ID — nên mọi cảnh báo đều rơi vào hư không.' };
-  const r = await guiTin(ADMIN_ID, '✅ Tin thử từ tủ phát mã. Nhận được tin này nghĩa là cảnh báo sẽ tới đúng chỗ.');
+  if (!ADMIN_IDS.length) return { ok: false, loi: 'Chưa đặt ADMIN_TELEGRAM_ID — nên mọi cảnh báo đều rơi vào hư không.' };
+  const r = await guiMoiAdmin( '✅ Tin thử từ tủ phát mã. Nhận được tin này nghĩa là cảnh báo sẽ tới đúng chỗ.');
   if (r?.ok) return { ok: true };
   return { ok: false, loi: `Telegram từ chối: ${r?.description || 'không rõ'}. Kiểm tra ADMIN_TELEGRAM_ID, và m phải bấm Start với bot ít nhất một lần.` };
 }
@@ -221,7 +235,7 @@ function tao_ma_bind(nvId) {
   return token;
 }
 
-module.exports = { khoiDong, baoDongChoJason, tinChoJason, hoiDuyet, hoiDuyetMay, tao_ma_bind, guiTinThu,
-  coBot: () => !!TOKEN, coAdminId: () => !!ADMIN_ID,
+module.exports = { khoiDong, baoDongChoBerryDiz, tinChoBerryDiz, hoiDuyet, hoiDuyetMay, tao_ma_bind, guiTinThu,
+  coBot: () => !!TOKEN, coAdminId: () => !!ADMIN_IDS.length, soAdmin: () => ADMIN_IDS.length,
   // Chỉ dùng cho selftest: chạy thẳng bộ xử lý tin nhắn mà không cần Telegram thật.
   __xuLyTinNhan: xuLyTinNhan };
