@@ -235,7 +235,7 @@ function tao_ma_bind(nvId) {
   return token;
 }
 
-module.exports = { khoiDong, baoDongChoBerryDiz, tinChoBerryDiz, hoiDuyet, hoiDuyetMay, tao_ma_bind, guiTinThu,
+module.exports = { khoiDong, baoDongChoJason, tinChoJason, hoiDuyet, hoiDuyetMay, tao_ma_bind, guiTinThu,
   coBot: () => !!TOKEN, coAdminId: () => !!ADMIN_IDS.length, soAdmin: () => ADMIN_IDS.length,
   // Chỉ dùng cho selftest: chạy thẳng bộ xử lý tin nhắn mà không cần Telegram thật.
   __xuLyTinNhan: xuLyTinNhan };
