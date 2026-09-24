@@ -10,13 +10,17 @@ let baoThuong = async () => {}; // báo hoạt động bình thường, có th�
 function gan_kenh_bao_dong(fn) { baoDong = fn; }
 function gan_kenh_bao_thuong(fn) { baoThuong = fn; }
 
+// Brand của cả tủ này. Tủ AE888 đặt BRAND=AE888 trên Render; để trống thì lấy 'AE888'.
+// Dùng khi hồ sơ nhân viên chưa điền brand — khỏi lộ nhầm brand khác trong tin.
+const BRAND_TU = process.env.BRAND || 'AE888';
+
 /** Báo cho Jason biết vừa có người lấy mã. Bật/tắt ở tab Cài đặt. */
 function baoPhatMa(nv, chiTiet, may) {
   if (db.docCaiDat('bao_moi_lan_phat_ma', '1') !== '1') return;
   const gio = new Date().toLocaleTimeString('vi-VN', { hour12: false });
   Promise.resolve(baoThuong(
     `🔑 ${gio} · <b>${nv.ho_ten}</b> lấy mã\n` +
-    `<code>${nv.bo_account}</code> · ${nv.brand} · ${nv.vai_tro}\n` +
+    `<code>${nv.bo_account}</code> · ${nv.brand || BRAND_TU} · ${nv.vai_tro}\n` +
     `Xin từ: ${may || 'trang Kiểm thử'}\n${chiTiet}`
   )).catch(() => {});
 }

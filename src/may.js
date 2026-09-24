@@ -6,7 +6,7 @@ const { dauVan } = require('./crypto');
 
 /**
  * Đường lấy mã qua máy trạm (PowerShell), thay cho Telegram.
- * Luật giữ nguyên hệt bot: gắn theo ca, mỗi ca một máy, mở sớm 7 phút,
+ * Luật giữ nguyên hệt bot: gắn theo ca, mỗi ca một máy, mở sớm 15 phút,
  * ngoài ca thì chờ Jason duyệt.
  *
  * Khác một điểm: định danh là MÁY THẬT, không phải tài khoản nhắn tin.
@@ -153,7 +153,7 @@ function gan_ca({ may_id, van_tay, ma_bind }) {
 
   // Lần gắn ĐẦU TIÊN của ca thì cho suốt ca — vào ca muộn vẫn làm việc được.
   // Đổi sang máy khác sau khi đã gắn thì rơi vào kiem_gian_lan ở trên, chặn ở đó.
-  // Cửa sổ 7 phút chỉ còn chặn việc gắn quá sớm trước giờ vào ca.
+  // Cửa sổ 15 phút chỉ còn chặn việc gắn quá sớm trước giờ vào ca.
   const ca = ca_hieu_luc(nv);
   const daGanCaNay = nv.bind_ca_start === ca.start;
   const hanChot = Number(db.docCaiDat('gan_han_chot_phut', '0'));

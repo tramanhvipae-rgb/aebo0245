@@ -156,7 +156,7 @@ function cua_so_gan(nv, nowMs = Date.now(), hanChotPhut = 0) {
 }
 
 const LUAT = {
-  MO_SOM_MS: 7 * 60000,          // được dùng mã CCB từ 7 phút trước giờ lên ca
+  MO_SOM_MS: 15 * 60000,         // được dùng mã CCB từ 15 phút trước giờ lên ca
   BURST_SO_LAN: 5,          // 5 lần trong 10 phút -> cảnh báo
   BURST_CUA_SO: 10 * PHUT,
   MUC_CAO_NGUONG: 3,        // tài khoản quyền cao, từ lần thứ 3 trong ca -> cảnh báo

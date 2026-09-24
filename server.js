@@ -29,6 +29,8 @@ app.use(cookieParser());
 // Tăng số này mỗi khi giao thức với máy trạm đổi. Script so số này với số của nó
 // và báo ngay nếu lệch — client mới ghép server cũ là nguồn của mọi lỗi khó hiểu.
 const PHIEN_BAN = 5;
+// Brand của cả tủ. Đặt BRAND=AE888 trên Render cho tủ AE.
+const BRAND = process.env.BRAND || 'AE888';
 
 const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
@@ -138,7 +140,7 @@ app.post('/api/nhan-vien', chanAdmin, (req, res) => {
   try {
     const id = db.themNhanVien({
       ho_ten: b.ho_ten, bo_account: b.bo_account,
-      brand: 'ST666', vai_tro: b.vai_tro || 'CS', muc: b.muc || 'thuong',
+      brand: b.brand || BRAND, vai_tro: b.vai_tro || 'CS', muc: b.muc || 'thuong',
       ca_bat_dau: b.ca_bat_dau || '09:00',
       ca_ket_thuc: b.do_dai_ca_phut
         ? congGio(b.ca_bat_dau || '09:00', Number(b.do_dai_ca_phut))
@@ -174,7 +176,7 @@ app.post('/api/nhan-vien/nhap-file', chanAdmin, (req, res) => {
       const nv = {
         ho_ten: d.se_them.ho_ten,
         bo_account: d.se_them.bo_account,
-        brand: 'ST666',
+        brand: d.se_them.brand || BRAND,
         vai_tro: d.se_them.vai_tro || md.vai_tro || 'CS',
         muc: 'thuong',
         tz_offset: d.se_them.tz_offset ?? Number(md.tz_offset ?? 420),

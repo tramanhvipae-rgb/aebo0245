@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS nhan_vien (
   id                INTEGER PRIMARY KEY AUTOINCREMENT,
   ho_ten            TEXT NOT NULL,
   bo_account        TEXT NOT NULL UNIQUE,
-  brand             TEXT NOT NULL DEFAULT 'ST666',
+  brand             TEXT NOT NULL DEFAULT 'AE888',
   vai_tro           TEXT NOT NULL DEFAULT 'CS',
   muc               TEXT NOT NULL DEFAULT 'thuong',   -- thuong | cao
   telegram_id       TEXT UNIQUE,

@@ -368,15 +368,15 @@ async function okAsync(ten, fn) {
     assert.ok(!r.ma, 'ngoài ca KHÔNG được tự trả mã');
   });
 
-  console.log('\n8. Cửa sổ gắn máy — chỉ 7 phút trước giờ vào ca');
+  console.log('\n8. Cửa sổ gắn máy — chỉ 15 phút trước giờ vào ca');
   db.datCaiDat('gan_han_chot_phut', '0');
 
   const nvCa = { ca_bat_dau: '09:00', ca_ket_thuc: '21:00', tz_offset: 420 };
   const gioVN = (h, m) => Date.UTC(2026, 8, 2, h - 7, m);
 
-  ok('mở đúng 7 phút trước giờ vào ca', () => {
-    assert.ok(!cua_so_gan(nvCa, gioVN(8, 50), 0).trong_cua_so, '08:50 không được mở');
-    assert.ok(cua_so_gan(nvCa, gioVN(8, 53), 0).trong_cua_so, '08:53 phải mở');
+  ok('mở đúng 15 phút trước giờ vào ca', () => {
+    assert.ok(!cua_so_gan(nvCa, gioVN(8, 43), 0).trong_cua_so, '08:43 không được mở');
+    assert.ok(cua_so_gan(nvCa, gioVN(8, 46), 0).trong_cua_so, '08:46 phải mở');
     assert.ok(cua_so_gan(nvCa, gioVN(9, 0), 0).trong_cua_so, '09:00 phải mở');
   });
   ok('đóng ngay sau giờ vào ca', () => {
@@ -390,8 +390,8 @@ async function okAsync(ten, fn) {
   });
   ok('ca đêm qua nửa đêm cũng đúng', () => {
     const dem = { ca_bat_dau: '22:00', ca_ket_thuc: '06:00', tz_offset: 420 };
-    assert.ok(!cua_so_gan(dem, gioVN(21, 50), 0).trong_cua_so, '21:50 chưa mở');
-    assert.ok(cua_so_gan(dem, gioVN(21, 55), 0).trong_cua_so, '21:55 phải mở');
+    assert.ok(!cua_so_gan(dem, gioVN(21, 43), 0).trong_cua_so, '21:43 chưa mở');
+    assert.ok(cua_so_gan(dem, gioVN(21, 46), 0).trong_cua_so, '21:46 phải mở');
     assert.ok(!cua_so_gan(dem, gioVN(23, 0), 0).trong_cua_so, '23:00 đã đóng');
   });
   await okAsync('vào ca muộn vẫn gắn máy được — không được khoá người ta ngoài BO', () => {

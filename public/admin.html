@@ -303,13 +303,13 @@ input[type=checkbox]{width:auto;accent-color:var(--tim)}
 
     <section id="tab-tu" class="an">
       <h2>Nhân sự</h2>
-      <p class="phu">Gắn máy được từ 7 phút trước giờ vào ca cho tới hết ca. Mỗi ca chỉ một máy — đổi máy giữa ca là báo gian lận. Ca sửa trực tiếp trong bảng, hoặc đổi hàng loạt ở dưới khi xếp lại ca đầu tháng.</p>
+      <p class="phu">Gắn máy được từ 15 phút trước giờ vào ca cho tới hết ca. Mỗi ca chỉ một máy — đổi máy giữa ca là báo gian lận. Ca sửa trực tiếp trong bảng, hoặc đổi hàng loạt ở dưới khi xếp lại ca đầu tháng.</p>
 
       <div class="hop">
         <h3>Thêm một người thủ công <span style="float:right;font-weight:400;color:var(--nhat);font-size:11.5px">tách biệt với việc nhập lịch bằng file ở trên</span></h3>
         <div class="luoi">
           <div><label>Tên nhân viên</label><input id="f_ten" placeholder="Nguyễn Thu Hà"></div>
-          <div><label>Tài khoản BO</label><input id="f_acc" placeholder="ST666-524"></div>
+          <div><label>Tài khoản BO</label><input id="f_acc" placeholder="AE888-524"></div>
           <div><label>Bộ phận</label><select id="f_role"><option>CS</option><option>CS ONL</option><option>VIP</option><option>RISK</option><option>RISK_ONLINE</option></select></div>
           <div><label>Khu vực</label><select id="f_tz"><option value="420">VN · Asia/Ho_Chi_Minh</option><option value="240">ARM · Asia/Yerevan</option></select></div>
           <div><label>Ca bắt đầu</label><input id="f_bd" value="09:00"></div>
@@ -486,7 +486,7 @@ input[type=checkbox]{width:auto;accent-color:var(--tim)}
                 <button class="b" onclick="dongSuaLichNgay()">Đóng</button>
               </div>
               <div class="luoi">
-                <div><label>Tài khoản BO</label><input id="lich_acc" placeholder="ST666-524" onchange="capNhatGioRaTuTinh()"></div>
+                <div><label>Tài khoản BO</label><input id="lich_acc" placeholder="AE888-524" onchange="capNhatGioRaTuTinh()"></div>
                 <div><label>Ngày</label><input id="lich_ngay" type="date"></div>
                 <div><label>Giờ vào ca</label><input id="lich_vao" type="time" onchange="capNhatGioRaTuTinh()"></div>
                 <div><label>Giờ ra ca <span style="font-weight:400;color:var(--nhat)">(tự tính theo Độ dài ca)</span></label><input id="lich_ra" type="time" readonly></div>
@@ -583,7 +583,7 @@ input[type=checkbox]{width:auto;accent-color:var(--tim)}
       <div class="hop">
         <h3>Cửa sổ gắn máy</h3>
         <p style="color:var(--mo);font-size:12.5px;margin:-8px 0 14px">
-          Gắn máy được từ <b>7 phút trước giờ vào ca</b> cho tới hết ca — vào ca muộn vẫn làm việc được,
+          Gắn máy được từ <b>15 phút trước giờ vào ca</b> cho tới hết ca — vào ca muộn vẫn làm việc được,
           không bị khoá ngoài BO. Nhưng <b>đã gắn rồi mà đổi sang máy khác</b> trong cùng ca thì bị chặn
           và báo gian lận. Ai cần đổi máy thật (máy hỏng) thì Quản lý bấm <b>Mở khoá gắn</b> ở dòng người đó
           trong tab Nhân sự.
